@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Sania | 2025 Birthday Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #ff3366;
+            --accent-glow: rgba(255, 51, 102, 0.4);
+            --bg-dark: #050505;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .font-serif { font-family: 'Playfair Display', serif; }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+            50% { box-shadow: 0 0 40px var(--accent-glow); }
+        }
+
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-glow { animation: glow 3s infinite; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Cursor */
+        #cursor-glow {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 51, 102, 0.15) 0%, rgba(0,0,0,0) 70%);
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .gate-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease-in-out;
+        }
+
+        /* Gift Box */
+        .gift-container {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .gift-box {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            background: var(--accent);
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .gift-box::before { /* Ribbon */
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 100%;
+            background: #fff;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gift-lid {
+            position: absolute;
+            top: -20px;
+            width: 160px;
+            left: -5px;
+            height: 30px;
+            background: #ff4d7d;
+            transition: transform 0.5s;
+        }
+
+        .gift-container:hover .gift-lid {
+            transform: translateY(-20px) rotateX(20deg);
+        }
+
+        .gift-container.opened .gift-lid {
+            transform: translateY(-100px) rotateX(90deg);
+            opacity: 0;
+        }
+        
+        .gift-container.opened .gift-box {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        .hidden-content {
+            display: none;
+        }
+
+        /* Music Toggle UI */
+        #music-control {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: none; /* Hidden until experience starts */
+        }
+    </style>
+</head>
+<body class="bg-black select-none">
+
+    <div id="cursor-glow"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Audio Element -->
+    <!-- Using a soft, celebratory ambient track. You can replace the SRC with any URL -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Music Control UI -->
+    <div id="music-control" class="reveal">
+        <button onclick="toggleMusic()" class="glass p-4 border-white/10 hover:border-pink-500/50 transition-all group">
+            <div id="music-icon" class="text-pink-500 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+            </div>
+        </button>
+    </div>
+
+    <!-- Entry Gate -->
+    <div id="entry-gate" class="gate-overlay">
+        <div class="text-center p-8">
+            <h2 class="text-xs tracking-[0.5em] uppercase text-gray-500 mb-4 reveal active">Initialization...</h2>
+            <h1 class="text-4xl md:text-6xl font-serif italic mb-12">A special day awaits.</h1>
+            <button onclick="startExperience()" class="px-10 py-4 glass border-white/20 hover:border-pink-500 transition-all duration-500 text-lg tracking-widest uppercase hover:scale-105">
+                Unlock Experience
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="hidden-content opacity-0 transition-opacity duration-1000">
+        
+        <!-- Section 1: Hero -->
+        <section class="min-h-screen flex flex-col items-center justify-center relative px-6 overflow-hidden">
+            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-pink-600/20 blur-[120px] rounded-full animate-pulse"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 blur-[150px] rounded-full animate-pulse"></div>
+
+            <div class="relative z-10 text-center">
+                <span class="text-pink-500 uppercase tracking-[0.4em] text-sm mb-4 block reveal">Today is all about you</span>
+                <h1 class="text-7xl md:text-9xl font-serif italic mb-6 reveal">Sania<span class="text-pink-500">.</span></h1>
+                <p class="text-xl md:text-2xl text-gray-400 font-light max-w-2xl mx-auto leading-relaxed reveal">
+                    A celestial event in human form. Happy Birthday to the girl who brings color to every gray moment.
+                </p>
+                <div class="mt-12 reveal">
+                    <a href="#journey" class="text-xs uppercase tracking-[0.3em] text-gray-500 hover:text-white transition-colors">Scroll to Begin Journey &darr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Heartfelt Message -->
+        <section id="journey" class="py-32 px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass p-10 md:p-20 relative overflow-hidden reveal">
+                    <div class="absolute top-0 right-0 p-8 text-pink-500/20 text-8xl font-serif">"</div>
+                    <h2 class="text-3xl md:text-5xl font-serif mb-12 leading-tight">
+                        Some people make the world <span class="text-pink-500 italic">special</span> just by being in it.
+                    </h2>
+                    <div class="space-y-6 text-lg text-gray-300 font-light leading-relaxed">
+                        <p>
+                            Sania, another year has passed, and you’ve only managed to grow more incredible. It’s rare to find someone who combines grace, kindness, and that effortless sparkle you carry.
+                        </p>
+                        <p>
+                            Whether it's your laugh that lights up a room or the way you handle everything with such poise—today we celebrate the masterpiece that is you.
+                        </p>
+                        <p class="text-white font-semibold">
+                            May 2025 be the year all your wildest dreams decide to come true. You deserve nothing less than the universe.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: The Interactive Gift -->
+        <section class="py-32 px-6 flex flex-col items-center justify-center bg-zinc-950/50">
+            <div class="text-center mb-16 reveal">
+                <h3 class="text-2xl font-serif mb-2">A small surprise?</h3>
+                <p class="text-gray-500 uppercase tracking-widest text-xs">Tap the box to open</p>
+            </div>
+
+            <div id="gift-trigger" class="gift-container reveal" onclick="openGift()">
+                <div class="gift-lid"></div>
+                <div class="gift-box animate-glow"></div>
+            </div>
+
+            <div id="gift-message" class="mt-20 opacity-0 transition-all duration-1000 scale-90 text-center">
+                <div class="text-5xl mb-4">✨ 🎂 ✨</div>
+                <h4 class="text-3xl font-serif mb-4">Happy Birthday, Sania!</h4>
+                <p class="text-gray-400 max-w-md mx-auto">You've unlocked a year of endless happiness, success, and love. Let the celebration begin!</p>
+            </div>
+        </section>
+
+        <!-- Section 4: Footer -->
+        <footer class="py-20 text-center px-6">
+            <div class="reveal">
+                <div class="h-[1px] w-24 bg-pink-500 mx-auto mb-12"></div>
+                <p class="text-sm tracking-[0.5em] uppercase text-gray-500 mb-4">Made for you</p>
+                <h2 class="text-4xl font-serif italic mb-8">Cheers to your day.</h2>
+                <p class="text-gray-600 text-xs mt-20">&copy; 2025 | Exclusive for Sania</p>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        const audio = document.getElementById('bg-music');
+        const musicControl = document.getElementById('music-control');
+        const musicIcon = document.getElementById('music-icon');
+        let isMusicPlaying = false;
+
+        // Cursor Glow Effect
+        const cursor = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Start Experience & Music
+        function startExperience() {
+            const gate = document.getElementById('entry-gate');
+            const main = document.getElementById('main-content');
+            
+            // Play Music
+            audio.play().then(() => {
+                isMusicPlaying = true;
+            }).catch(e => console.log("Audio play blocked", e));
+
+            gate.style.opacity = '0';
+            setTimeout(() => {
+                gate.style.display = 'none';
+                main.classList.remove('hidden-content');
+                musicControl.style.display = 'block';
+                setTimeout(() => {
+                    main.style.opacity = '1';
+                    handleScroll(); 
+                    musicControl.classList.add('active');
+                }, 100);
+            }, 1000);
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                audio.pause();
+                musicIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+            } else {
+                audio.play();
+                musicIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // Scroll Reveal Logic
+        function handleScroll() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.85) {
+                    el.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', handleScroll);
+
+        // Confetti Engine
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 8 + 4;
+                this.color = `hsl(${Math.random() * 30 + 330}, 80%, 60%)`;
+                this.speed = Math.random() * 3 + 2;
+                this.angle = Math.random() * 360;
+                this.spin = Math.random() * 0.2 - 0.1;
+            }
+            update() {
+                this.y += this.speed;
+                this.angle += this.spin;
+                if (this.y > canvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function initConfetti() {
+            particles = [];
+            for(let i=0; i<150; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+
+        function openGift() {
+            const trigger = document.getElementById('gift-trigger');
+            const message = document.getElementById('gift-message');
+            
+            if (!trigger.classList.contains('opened')) {
+                trigger.classList.add('opened');
+                initConfetti();
+                animateConfetti();
+                
+                setTimeout(() => {
+                    message.classList.remove('opacity-0', 'scale-90');
+                    message.classList.add('opacity-1', 'scale-100');
+                    cursor.style.width = '600px';
+                    cursor.style.height = '600px';
+                }, 600);
+            }
+        }
+
+        document.addEventListener('touchstart', handleScroll);
+    </script>
+</body>
+</html>
